@@ -20,4 +20,11 @@ struct Constants {
         static let FLASH_ON = "FLASH ON"
         static let FLASH_OFF = "FLASH OFF"
     }
+    
+    struct ImageClassifier {
+        static let IDENTIFICATION_UNKNOWN = "I'm not sure what this is. Please try again."
+        static let IDENTIFICATION_STRAWBERRY = "Strawberry"
+        static let IDENTIFICATION_NOT_STRAWBERRY = "Not a strawberry"
+        static let CONFIDENCE = "CONFIDENCE: "
+    }
 }
