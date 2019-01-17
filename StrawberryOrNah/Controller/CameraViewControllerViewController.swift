@@ -33,7 +33,23 @@ class CameraViewController: UIViewController {
     }
     
     override func viewDidAppear(_ animated: Bool) {
-        setupCamera()
+        // First we check if the device has a camera (otherwise will crash in Simulator - also, some iPod touch models do not have a camera).
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            // Then check if camera access has been allowed; alert user to allow access if access has been denied
+            let authStatus = AVCaptureDevice.authorizationStatus(for: AVMediaType.video)
+            switch authStatus {
+            case .authorized:
+                setupCamera()
+                break
+            case .denied:
+                alertPromptToAllowCameraAccessViaSettings()
+                break
+            case .notDetermined:
+                break
+            default:
+                break
+            }
+        }
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -98,6 +114,16 @@ class CameraViewController: UIViewController {
                 captureSession.removeOutput(cameraOutput!)
             }
         }
+    }
+    
+    func alertPromptToAllowCameraAccessViaSettings() {
+        let alert = UIAlertController(title: Constants.AllowCameraAccessAlert.TITLE, message: Constants.AllowCameraAccessAlert.MESSAGE, preferredStyle: .alert )
+        alert.addAction(UIAlertAction(title: Constants.AllowCameraAccessAlert.SettingsAction.TITlE, style: .cancel) { alert in
+            if let appSettingsURL = NSURL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(appSettingsURL as URL, options: [:], completionHandler: nil)
+            }
+        })
+        present(alert, animated: true, completion: nil)
     }
     
 
