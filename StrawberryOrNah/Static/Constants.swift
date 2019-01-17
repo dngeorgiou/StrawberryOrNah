@@ -23,8 +23,9 @@ struct Constants {
     
     struct ImageClassifier {
         static let IDENTIFICATION_UNKNOWN = "I'm not sure what this is. Please try again."
-        static let IDENTIFICATION_STRAWBERRY = "Strawberry"
-        static let IDENTIFICATION_NOT_STRAWBERRY = "Not a strawberry"
+        static let IDENTIFICATION_STRAWBERRY = "strawberry"
+        static let IDENTIFICATION_STRAWBERRY_LBL = "Strawberry"
+        static let IDENTIFICATION_NOT_STRAWBERRY_LBL = "Not a strawberry"
         static let CONFIDENCE = "CONFIDENCE: "
     }
 }
