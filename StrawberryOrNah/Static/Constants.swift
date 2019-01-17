@@ -15,4 +15,9 @@ struct Constants {
             static let TITlE = "Open Settings"
         }
     }
+    
+    struct FlashState {
+        static let FLASH_ON = "FLASH ON"
+        static let FLASH_OFF = "FLASH OFF"
+    }
 }
