@@ -133,3 +133,15 @@ class CameraViewController: UIViewController {
     
 }
 
+extension CameraViewController: AVCapturePhotoCaptureDelegate {
+    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        if let error = error {
+            debugPrint(error)
+        } else {
+            photoData = photo.fileDataRepresentation()
+            
+            let image = UIImage(data: photoData!)
+            self.capturedImageView.image = image
+        }
+    }
+}
