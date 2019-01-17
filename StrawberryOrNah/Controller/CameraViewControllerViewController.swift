@@ -9,12 +9,27 @@
 import UIKit
 
 class CameraViewController: UIViewController {
-
+    
+    @IBOutlet weak var cameraView: UIView!
+    
+    @IBOutlet weak var capturedImageView: RoundedShadowUIImageView!
+    
+    @IBOutlet weak var flashBtn: RoundedShadowUIButton!
+    
+    @IBOutlet weak var roundedLblView: RoundedShadowUIView!
+    
+    @IBOutlet weak var identificationLbl: UILabel!
+    
+    @IBOutlet weak var confidenceLbl: UILabel!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
     }
 
-
+    @IBAction func flashBtnWasPressed(_ sender: Any) {
+    }
+    
 }
 
