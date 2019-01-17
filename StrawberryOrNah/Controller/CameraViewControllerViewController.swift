@@ -33,15 +33,19 @@ class CameraViewController: UIViewController {
     }
     
     override func viewDidAppear(_ animated: Bool) {
+        setupCamera()
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        stopRunningCaptureSession()
+    }
+    
+    func setupCamera() {
         setupCaptureSession()
         setupDevice()
         setupInputOutput()
         setupPreviewLayer()
         startRunningCaptureSession()
-    }
-    
-    override func viewDidDisappear(_ animated: Bool) {
-        stopRunningCaptureSession()
     }
     
     func setupCaptureSession() {
