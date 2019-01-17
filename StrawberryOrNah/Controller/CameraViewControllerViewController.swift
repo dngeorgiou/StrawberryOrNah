@@ -8,6 +8,8 @@
 
 import UIKit
 import AVFoundation
+import CoreML
+import Vision
 
 class CameraViewController: UIViewController {
     
@@ -152,6 +154,31 @@ class CameraViewController: UIViewController {
         cameraOutput.capturePhoto(with: settings, delegate: self)
     }
     
+    func resultsMethod(request: VNRequest, error: Error?) {
+        // Handle changing label text
+        guard let results = request.results as? [VNClassificationObservation] else { return }
+        
+        for classification in results {
+            if classification.confidence < 0.5 {
+                self.identificationLbl.text = Constants.ImageClassifier.IDENTIFICATION_UNKNOWN
+                self.confidenceLbl.text = ""
+                break
+            } else {
+                let identification = classification.identifier
+                let confidence = Int(classification.confidence * 100)
+                if identification == Constants.ImageClassifier.IDENTIFICATION_STRAWBERRY {
+                    self.identificationLbl.text = Constants.ImageClassifier.IDENTIFICATION_STRAWBERRY_LBL
+                    self.confidenceLbl.text = Constants.ImageClassifier.CONFIDENCE + "\(confidence)%"
+                    break
+                } else {
+                    self.identificationLbl.text = Constants.ImageClassifier.IDENTIFICATION_NOT_STRAWBERRY_LBL
+                    self.confidenceLbl.text = Constants.ImageClassifier.CONFIDENCE + "\(confidence)%"
+                    break
+                }
+            }
+        }
+    }
+    
 
     @IBAction func flashBtnWasPressed(_ sender: Any) {
         switch flashControlState {
@@ -172,6 +199,16 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
             debugPrint(error)
         } else {
             photoData = photo.fileDataRepresentation()
+            
+            do {
+                let model = try VNCoreMLModel(for: StrawberryImageClassifier().model)
+                let request = VNCoreMLRequest(model: model, completionHandler: resultsMethod)
+                let handler = VNImageRequestHandler(data: photoData!)
+                try handler.perform([request])
+            } catch {
+                // Handle errors
+                debugPrint(error)
+            }
             
             let image = UIImage(data: photoData!)
             self.capturedImageView.image = image
