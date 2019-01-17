@@ -80,6 +80,7 @@ class CameraViewController: UIViewController {
         setupPreviewLayer()
         startRunningCaptureSession()
         
+        // Add gestureRecognizer to take photo once captureSession is setup and running
         cameraView.addGestureRecognizer(tap!)
     }
     
@@ -118,17 +119,21 @@ class CameraViewController: UIViewController {
     }
     
     func startRunningCaptureSession() {
+        // Run capture session if capture session is not running
         if !captureSession.isRunning {
             captureSession.startRunning()
         }
     }
     
     func stopRunningCaptureSession() {
+        // Stop running capture session if capture session is running
         if captureSession.isRunning {
             captureSession.stopRunning()
+            // Remove capture session input if capture session input exists
             if captureSession.inputs.count > 0 {
                 captureSession.removeInput(captureDeviceInput!)
             }
+            // Remove capture session output if capture session output exists
             if captureSession.outputs.count > 0 {
                 captureSession.removeOutput(cameraOutput!)
             }
@@ -136,51 +141,65 @@ class CameraViewController: UIViewController {
     }
     
     func alertPromptToAllowCameraAccessViaSettings() {
+        // Instantiate alert controller to send user to Settings to change apps Camera Permission
         let alert = UIAlertController(title: Constants.AllowCameraAccessAlert.TITLE, message: Constants.AllowCameraAccessAlert.MESSAGE, preferredStyle: .alert )
+        // Add action which sends user to Settings to change apps Camera Permission
         alert.addAction(UIAlertAction(title: Constants.AllowCameraAccessAlert.SettingsAction.TITlE, style: .cancel) { alert in
             if let appSettingsURL = NSURL(string: UIApplication.openSettingsURLString) {
                 UIApplication.shared.open(appSettingsURL as URL, options: [:], completionHandler: nil)
             }
         })
+        // Present Camera Permission alert controller
         present(alert, animated: true, completion: nil)
     }
     
     @objc func didTapCameraView() {
+        // Disable another photo from being taken and animate/show activity indicator until image classification and speech is complete
         cameraView.isUserInteractionEnabled = false
         activityIndicator.startAnimating()
         activityIndicator.isHidden = false
         
+        // Set AVCapturePhotoSettings settings
         let settings = AVCapturePhotoSettings()
         settings.previewPhotoFormat = settings.embeddedThumbnailPhotoFormat
-        
+        // Update AVCapturePhotoSettings settings with respective flash state
         if flashControlState == .off {
             settings.flashMode = .off
         } else {
             settings.flashMode = .on
         }
         
+        // Capture photo
         cameraOutput.capturePhoto(with: settings, delegate: self)
     }
     
     func resultsMethod(request: VNRequest, error: Error?) {
-        // Handle changing label text
+        // Handle changing label text and speak image classification results
         guard let results = request.results as? [VNClassificationObservation] else { return }
         
+        // Determine image classification results
         for classification in results {
+            // Image classifier IS NOT confident on results, return with .IDENTIFICATION_UNKNOWN
             if classification.confidence < 0.5 {
                 self.identificationLbl.text = Constants.ImageClassifier.IDENTIFICATION_UNKNOWN
                 self.confidenceLbl.text = ""
                 synthensizeSpeech(fromString: Constants.ImageClassifier.IDENTIFICATION_UNKNOWN)
                 break
             } else {
+                // Image classifier IS confident on results, return with identification of image
+                // Get image classifier identification
                 let identification = classification.identifier
+                // Get image classifier confidence level, multiply result by 100 to put it the form of a percentage
                 let confidence = Int(classification.confidence * 100)
+                
                 if identification == Constants.ImageClassifier.IDENTIFICATION_STRAWBERRY {
+                    // Image classifier identified image as a strawberry; update UI respectively and speak results
                     self.identificationLbl.text = Constants.ImageClassifier.IDENTIFICATION_STRAWBERRY_LBL
                     self.confidenceLbl.text = Constants.ImageClassifier.CONFIDENCE + "\(confidence)%"
                     synthensizeSpeech(fromString: Constants.ImageClassifier.IDENTIFICATION_STRAWBERRY_LBL)
                     break
                 } else {
+                    // Image classifier identified image as not a strawberry; update UI respectively and speak results
                     self.identificationLbl.text = Constants.ImageClassifier.IDENTIFICATION_NOT_STRAWBERRY_LBL
                     self.confidenceLbl.text = Constants.ImageClassifier.CONFIDENCE + "\(confidence)%"
                     synthensizeSpeech(fromString: Constants.ImageClassifier.IDENTIFICATION_NOT_STRAWBERRY_LBL)
@@ -191,12 +210,14 @@ class CameraViewController: UIViewController {
     }
     
     func synthensizeSpeech(fromString string: String) {
+        // Speak image classification result
         let speechUtterance = AVSpeechUtterance(string: string)
         speechSynthesizer.speak(speechUtterance)
     }
     
 
     @IBAction func flashBtnWasPressed(_ sender: Any) {
+        // Toggle flashBtn text and flashState
         switch flashControlState {
         case .off:
             flashBtn.setTitle(Constants.FlashState.FLASH_ON, for: .normal)
@@ -214,8 +235,10 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
         if let error = error {
             debugPrint(error)
         } else {
+            // Convert AVCapturePhoto into Data for image classification
             photoData = photo.fileDataRepresentation()
             
+            // Setup CoreML and pass photo data into image classifier
             do {
                 let model = try VNCoreMLModel(for: StrawberryImageClassifier().model)
                 let request = VNCoreMLRequest(model: model, completionHandler: resultsMethod)
@@ -226,6 +249,7 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
                 debugPrint(error)
             }
             
+            // Update UI with photo data
             let image = UIImage(data: photoData!)
             self.capturedImageView.image = image
         }
@@ -234,7 +258,7 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
 
 extension CameraViewController: AVSpeechSynthesizerDelegate {
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        // Speech utterance is finished, stop activity indicator and allow user to take a new photo
+        // Speech utterance is finished, hide/stopAnimating activity indicator and allow user to take a new photo
         cameraView.isUserInteractionEnabled = true
         activityIndicator.isHidden = true
         activityIndicator.stopAnimating()
