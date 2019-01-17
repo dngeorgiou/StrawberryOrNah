@@ -10,5 +10,9 @@ struct Constants {
     struct AllowCameraAccessAlert {
         static let TITLE = "StrawberryOrNah Would Like To Access the Camera"
         static let MESSAGE = "StrawberryOrNah needs camera access to take photos and identify objects."
+        
+        struct SettingsAction {
+            static let TITlE = "Open Settings"
+        }
     }
 }
