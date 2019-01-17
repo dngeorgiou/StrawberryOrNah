@@ -33,8 +33,12 @@ class CameraViewController: UIViewController {
     
     private var flashControlState: FlashState = .off
     
+    private var speechSynthesizer = AVSpeechSynthesizer()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        speechSynthesizer.delegate = self
         
         activityIndicator.isHidden = true
         
@@ -142,6 +146,10 @@ class CameraViewController: UIViewController {
     }
     
     @objc func didTapCameraView() {
+        cameraView.isUserInteractionEnabled = false
+        activityIndicator.startAnimating()
+        activityIndicator.isHidden = false
+        
         let settings = AVCapturePhotoSettings()
         settings.previewPhotoFormat = settings.embeddedThumbnailPhotoFormat
         
@@ -162,6 +170,7 @@ class CameraViewController: UIViewController {
             if classification.confidence < 0.5 {
                 self.identificationLbl.text = Constants.ImageClassifier.IDENTIFICATION_UNKNOWN
                 self.confidenceLbl.text = ""
+                synthensizeSpeech(fromString: Constants.ImageClassifier.IDENTIFICATION_UNKNOWN)
                 break
             } else {
                 let identification = classification.identifier
@@ -169,14 +178,21 @@ class CameraViewController: UIViewController {
                 if identification == Constants.ImageClassifier.IDENTIFICATION_STRAWBERRY {
                     self.identificationLbl.text = Constants.ImageClassifier.IDENTIFICATION_STRAWBERRY_LBL
                     self.confidenceLbl.text = Constants.ImageClassifier.CONFIDENCE + "\(confidence)%"
+                    synthensizeSpeech(fromString: Constants.ImageClassifier.IDENTIFICATION_STRAWBERRY_LBL)
                     break
                 } else {
                     self.identificationLbl.text = Constants.ImageClassifier.IDENTIFICATION_NOT_STRAWBERRY_LBL
                     self.confidenceLbl.text = Constants.ImageClassifier.CONFIDENCE + "\(confidence)%"
+                    synthensizeSpeech(fromString: Constants.ImageClassifier.IDENTIFICATION_NOT_STRAWBERRY_LBL)
                     break
                 }
             }
         }
+    }
+    
+    func synthensizeSpeech(fromString string: String) {
+        let speechUtterance = AVSpeechUtterance(string: string)
+        speechSynthesizer.speak(speechUtterance)
     }
     
 
@@ -213,6 +229,15 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
             let image = UIImage(data: photoData!)
             self.capturedImageView.image = image
         }
+    }
+}
+
+extension CameraViewController: AVSpeechSynthesizerDelegate {
+    func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+        // Speech utterance is finished, stop activity indicator and allow user to take a new photo
+        cameraView.isUserInteractionEnabled = true
+        activityIndicator.isHidden = true
+        activityIndicator.stopAnimating()
     }
 }
 
