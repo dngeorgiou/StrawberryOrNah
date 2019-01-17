@@ -31,7 +31,7 @@ class CameraViewController: UIViewController {
     
     private var tap: UITapGestureRecognizer?
     
-    private var flashControlState: FlashState = .off
+    private var flashControlState: Constants.FlashState.FlashState = .off
     
     private var speechSynthesizer = AVSpeechSynthesizer()
     
@@ -239,9 +239,4 @@ extension CameraViewController: AVSpeechSynthesizerDelegate {
         activityIndicator.isHidden = true
         activityIndicator.stopAnimating()
     }
-}
-
-enum FlashState {
-    case off
-    case on
 }

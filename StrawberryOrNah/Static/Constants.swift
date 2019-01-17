@@ -19,6 +19,11 @@ struct Constants {
     struct FlashState {
         static let FLASH_ON = "FLASH ON"
         static let FLASH_OFF = "FLASH OFF"
+        
+        enum FlashState {
+            case off
+            case on
+        }
     }
     
     struct ImageClassifier {
