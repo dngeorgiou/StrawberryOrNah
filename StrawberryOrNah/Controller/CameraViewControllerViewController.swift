@@ -30,6 +30,7 @@ class CameraViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        activityIndicator.isHidden = true
     }
     
     override func viewDidAppear(_ animated: Bool) {
