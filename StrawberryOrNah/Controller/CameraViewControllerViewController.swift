@@ -27,10 +27,15 @@ class CameraViewController: UIViewController {
     
     private var photoData: Data?
     
+    private var tap: UITapGestureRecognizer?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         activityIndicator.isHidden = true
+        
+        tap = UITapGestureRecognizer(target: self, action: #selector(didTapCameraView))
+        tap!.numberOfTapsRequired = 1
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -54,6 +59,9 @@ class CameraViewController: UIViewController {
     }
     
     override func viewDidDisappear(_ animated: Bool) {
+        if (cameraView.gestureRecognizers?.count)! > 0 {
+            cameraView.removeGestureRecognizer(tap!)
+        }
         stopRunningCaptureSession()
     }
     
@@ -63,6 +71,8 @@ class CameraViewController: UIViewController {
         setupInputOutput()
         setupPreviewLayer()
         startRunningCaptureSession()
+        
+        cameraView.addGestureRecognizer(tap!)
     }
     
     func setupCaptureSession() {
@@ -125,6 +135,13 @@ class CameraViewController: UIViewController {
             }
         })
         present(alert, animated: true, completion: nil)
+    }
+    
+    @objc func didTapCameraView() {
+        let settings = AVCapturePhotoSettings()
+        settings.previewPhotoFormat = settings.embeddedThumbnailPhotoFormat
+        
+        cameraOutput.capturePhoto(with: settings, delegate: self)
     }
     
 
