@@ -29,6 +29,8 @@ class CameraViewController: UIViewController {
     
     private var tap: UITapGestureRecognizer?
     
+    private var flashControlState: FlashState = .off
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -141,11 +143,25 @@ class CameraViewController: UIViewController {
         let settings = AVCapturePhotoSettings()
         settings.previewPhotoFormat = settings.embeddedThumbnailPhotoFormat
         
+        if flashControlState == .off {
+            settings.flashMode = .off
+        } else {
+            settings.flashMode = .on
+        }
+        
         cameraOutput.capturePhoto(with: settings, delegate: self)
     }
     
 
     @IBAction func flashBtnWasPressed(_ sender: Any) {
+        switch flashControlState {
+        case .off:
+            flashBtn.setTitle(Constants.FlashState.FLASH_ON, for: .normal)
+            flashControlState = .on
+        case .on:
+            flashBtn.setTitle(Constants.FlashState.FLASH_OFF, for: .normal)
+            flashControlState = .off
+        }
     }
     
 }
@@ -161,4 +177,9 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
             self.capturedImageView.image = image
         }
     }
+}
+
+enum FlashState {
+    case off
+    case on
 }
