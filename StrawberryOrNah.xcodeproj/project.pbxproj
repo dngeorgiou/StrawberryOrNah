@@ -54,6 +54,9 @@
 		2EACF37E21F0EB3400231E4C /* StrawberryOrNah */ = {
 			isa = PBXGroup;
 			children = (
+				2EACF39321F0ECAB00231E4C /* Model */,
+				2EACF39221F0ECA200231E4C /* View */,
+				2EACF39121F0EC9700231E4C /* Controller */,
 				2EACF37F21F0EB3400231E4C /* AppDelegate.swift */,
 				2EACF38121F0EB3400231E4C /* ViewController.swift */,
 				2EACF38321F0EB3400231E4C /* Main.storyboard */,
@@ -62,6 +65,27 @@
 				2EACF38B21F0EB3500231E4C /* Info.plist */,
 			);
 			path = StrawberryOrNah;
+			sourceTree = "<group>";
+		};
+		2EACF39121F0EC9700231E4C /* Controller */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Controller;
+			sourceTree = "<group>";
+		};
+		2EACF39221F0ECA200231E4C /* View */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		2EACF39321F0ECAB00231E4C /* Model */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
