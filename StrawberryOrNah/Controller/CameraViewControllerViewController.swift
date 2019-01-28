@@ -13,6 +13,8 @@ import Vision
 
 class CameraViewController: UIViewController {
     
+    // MARK: - Create/connect outlets
+    // [START create/connect outlets]
     @IBOutlet weak var cameraView: UIView!
     @IBOutlet weak var capturedImageView: RoundedShadowUIImageView!
     @IBOutlet weak var flashBtn: RoundedShadowUIButton!
@@ -20,42 +22,57 @@ class CameraViewController: UIViewController {
     @IBOutlet weak var identificationLbl: UILabel!
     @IBOutlet weak var confidenceLbl: UILabel!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+    // [END create/connect outlets]
     
+    // MARK: - AVFoundation references
+    // [START AVFoundation references]
     private var captureSession: AVCaptureSession!
     private var backCamera: AVCaptureDevice?
     private var captureDeviceInput: AVCaptureDeviceInput?
     private var cameraOutput: AVCapturePhotoOutput!
     private var previewLayer: AVCaptureVideoPreviewLayer!
-    
+    // Captured photo data reference
     private var photoData: Data?
+    // [END AVFoundation references]
     
+    // UITapGestureRecognizer reference
     private var tap: UITapGestureRecognizer?
     
+    // Instantiate camera flash as .off
     private var flashControlState: Constants.FlashState.FlashState = .off
     
+    // Instantiate speechSynthesizer
     private var speechSynthesizer = AVSpeechSynthesizer()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Set speechSynthesizer delegate as self
         speechSynthesizer.delegate = self
         
+        // Hide activity indicator until photo is taken
         activityIndicator.isHidden = true
         
+        // [START setup_UITapGestureRecognizer]
         tap = UITapGestureRecognizer(target: self, action: #selector(didTapCameraView))
         tap!.numberOfTapsRequired = 1
+        // [END setup_UITapGestureRecognizer]
     }
     
     override func viewDidAppear(_ animated: Bool) {
+        // [START handle camera available and permission]
         // First we check if the device has a camera (otherwise will crash in Simulator - also, some iPod touch models do not have a camera).
         if UIImagePickerController.isSourceTypeAvailable(.camera) {
-            // Then check if camera access has been allowed; alert user to allow access if access has been denied
+            // Device has camera available
+            // Check if camera access has been allowed; alert user to allow access if access has been denied
             let authStatus = AVCaptureDevice.authorizationStatus(for: AVMediaType.video)
             switch authStatus {
             case .authorized:
+                // Camera permission has been authorized, setup camera
                 setupCamera()
                 break
             case .denied:
+                // Camera permission has been denied, ask user for camera permission
                 alertPromptToAllowCameraAccessViaSettings()
                 break
             case .notDetermined:
@@ -64,13 +81,20 @@ class CameraViewController: UIViewController {
                 break
             }
         }
+        // [END handle camera available and permission]
     }
     
     override func viewDidDisappear(_ animated: Bool) {
+        // [START remove UITapGestureRecognizer]
+        // Check if UITapGestureRecognizer, remove it if it does
         if (cameraView.gestureRecognizers?.count)! > 0 {
             cameraView.removeGestureRecognizer(tap!)
         }
+        // [END remove UITapGestureRecognizer]
+        
+        // [START stop running capture session]
         stopRunningCaptureSession()
+        // [END stop running capture session]
     }
     
     func setupCamera() {
@@ -90,6 +114,7 @@ class CameraViewController: UIViewController {
     }
     
     func setupDevice() {
+        // Setup device to use back camera
         backCamera = AVCaptureDevice.default(for: AVMediaType.video)
     }
     
@@ -119,14 +144,14 @@ class CameraViewController: UIViewController {
     }
     
     func startRunningCaptureSession() {
-        // Run capture session if capture session is not running
+        // Run capture session if capture session is not already running
         if !captureSession.isRunning {
             captureSession.startRunning()
         }
     }
     
     func stopRunningCaptureSession() {
-        // Stop running capture session if capture session is running
+        // Stop running capture session if capture session is currently running
         if captureSession.isRunning {
             captureSession.stopRunning()
             // Remove capture session input if capture session input exists
@@ -153,28 +178,34 @@ class CameraViewController: UIViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    // [START handle gestureRecognizer]
     @objc func didTapCameraView() {
         // Disable another photo from being taken and animate/show activity indicator until image classification and speech is complete
         cameraView.isUserInteractionEnabled = false
         activityIndicator.startAnimating()
         activityIndicator.isHidden = false
         
-        // Set AVCapturePhotoSettings settings
+        // [START set AVCapturePhotoSettings settings]
+        // Instantiate AVCapturePhotoSettings settings
         let settings = AVCapturePhotoSettings()
         settings.previewPhotoFormat = settings.embeddedThumbnailPhotoFormat
-        // Update AVCapturePhotoSettings settings with respective flash state
+        // [START set AVCapturePhotoSettings flash state]
+        // Update AVCapturePhotoSettings with respective flash state
         if flashControlState == .off {
             settings.flashMode = .off
         } else {
             settings.flashMode = .on
         }
+        // [END set AVCapturePhotoSettings flash state]
+        // [END set AVCapturePhotoSettings settings]
         
         // Capture photo
         cameraOutput.capturePhoto(with: settings, delegate: self)
     }
+    // [END handle gestureRecognizer]
     
     func resultsMethod(request: VNRequest, error: Error?) {
-        // Handle changing label text and speak image classification results
+        // [START determine image classfification and notify user of results]
         guard let results = request.results as? [VNClassificationObservation] else { return }
         
         // Determine image classification results
@@ -194,19 +225,24 @@ class CameraViewController: UIViewController {
                 
                 if identification == Constants.ImageClassifier.IDENTIFICATION_STRAWBERRY {
                     // Image classifier identified image as a strawberry; update UI respectively and speak results
+                    // [START notify user of strawberry classification]
                     self.identificationLbl.text = Constants.ImageClassifier.IDENTIFICATION_STRAWBERRY_LBL
                     self.confidenceLbl.text = Constants.ImageClassifier.CONFIDENCE + "\(confidence)%"
                     synthensizeSpeech(fromString: Constants.ImageClassifier.IDENTIFICATION_STRAWBERRY_LBL)
+                    // [END notify user of strawberry classification]
                     break
                 } else {
                     // Image classifier identified image as not a strawberry; update UI respectively and speak results
+                    // [START notify user of not a strawberry classification]
                     self.identificationLbl.text = Constants.ImageClassifier.IDENTIFICATION_NOT_STRAWBERRY_LBL
                     self.confidenceLbl.text = Constants.ImageClassifier.CONFIDENCE + "\(confidence)%"
                     synthensizeSpeech(fromString: Constants.ImageClassifier.IDENTIFICATION_NOT_STRAWBERRY_LBL)
+                    // [END notify user of not a strawberry classification]
                     break
                 }
             }
         }
+        // [END determine image classfification and notify user of results]
     }
     
     func synthensizeSpeech(fromString string: String) {
@@ -217,7 +253,7 @@ class CameraViewController: UIViewController {
     
 
     @IBAction func flashBtnWasPressed(_ sender: Any) {
-        // Toggle flashBtn text and flashState
+        // [START toggle flashBtn text and flashState]
         switch flashControlState {
         case .off:
             flashBtn.setTitle(Constants.FlashState.FLASH_ON, for: .normal)
@@ -226,6 +262,7 @@ class CameraViewController: UIViewController {
             flashBtn.setTitle(Constants.FlashState.FLASH_OFF, for: .normal)
             flashControlState = .off
         }
+        // [END toggle flashBtn text and flashState]
     }
     
 }
@@ -238,7 +275,7 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
             // Convert AVCapturePhoto into Data for image classification
             photoData = photo.fileDataRepresentation()
             
-            // Setup CoreML and pass photo data into image classifier
+            // [START setup CoreML and pass photo data into image classifier]
             do {
                 let model = try VNCoreMLModel(for: StrawberryImageClassifier().model)
                 let request = VNCoreMLRequest(model: model, completionHandler: resultsMethod)
@@ -248,10 +285,12 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
                 // Handle errors
                 debugPrint(error)
             }
+            // [END setup CoreML and pass photo data into image classifier]
             
-            // Update UI with photo data
+            // [START update UI with photo data]
             let image = UIImage(data: photoData!)
             self.capturedImageView.image = image
+            // [END update UI with photo data]
         }
     }
 }
